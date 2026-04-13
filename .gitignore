@@ -1,2 +1,8 @@
 node_modules/
-wiki/
+dist/
+.next/
+.env.local
+.artifacts/
+playwright-report/
+test-results/
+tsconfig.tsbuildinfo
