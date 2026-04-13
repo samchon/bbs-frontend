@@ -7,16 +7,16 @@
 [![Build Status](https://github.com/samchon/bbs-frontend/workflows/build/badge.svg)](https://github.com/samchon/bbs-frontend/actions?query=workflow%3Abuild)
 [![Guide Documents](https://img.shields.io/badge/guide-documents-forestgreen)](https://nestia.io/docs/)
 
-This is a Nestia-born frontend project for the sample BBS backend.
+This is a [Nestia](https://github.com/samchon/nestia)-born frontend project built for the sample BBS backend.
 
-The purpose of this repo is simple. If the backend gives you a decent SDK, typed DTOs, and readable comments, frontend automation becomes much more realistic. This project was built as a vibe coding project with the generated SDK and local [CLAUDE.md](CLAUDE.md) doing most of the steering, mainly through Codex and Claude Code.
+The purpose of this repo is simple. If the backend gives you a decent SDK, typed DTOs, and readable comments, frontend automation becomes much more realistic. This repo was built as a vibe coding project, with the generated SDK and local [CLAUDE.md](CLAUDE.md) doing most of the steering through Codex and Claude Code.
 
-It is not meant to prove that AI will always design perfect UI alone. It is meant to show that backend documentation quality directly changes how far frontend automation can go.
+It is not meant to prove that AI can always design a perfect UI on its own. It is meant to show that backend documentation quality directly changes how far frontend automation can go.
 
 ## 2. Getting Started
 Start the backend first.
 
-This sample backend is not a Docker-first service. It is a local NestJS + Prisma + SQLite project that runs directly on Node.js.
+This sample backend is not a Docker-first service. It is a local NestJS + Prisma + SQLite project that runs directly on Node.js with a local SQLite database.
 
 ```bash
 git clone https://github.com/samchon/bbs-backend
