@@ -1,34 +1,22 @@
-# bbs-frontend
+# Frontend of Bullet-in Board System
+## 1. Outline
+![Nestia Logo](https://nestia.io/logo.png)
 
-This repo is a small proof that backend quality matters a lot. If the SDK is typed, the DTOs are clear, and the backend comments are decent, tools like Codex and Claude Code can automate a surprising amount of frontend work.
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/samchon/bbs-frontend/tree/master/LICENSE)
+[![npm version](https://img.shields.io/npm/v/@samchon/bbs-api.svg)](https://www.npmjs.com/package/@samchon/bbs-api)
+[![Build Status](https://github.com/samchon/bbs-frontend/workflows/build/badge.svg)](https://github.com/samchon/bbs-frontend/actions?query=workflow%3Abuild)
+[![Guide Documents](https://img.shields.io/badge/guide-documents-forestgreen)](https://nestia.io/docs/)
 
-The point is not that AI will magically design everything well on its own. The point is that better backend documentation lowers frontend cost, shortens setup time, and makes agent-driven UI work much more realistic.
+This is a Nestia-born frontend project for the sample BBS backend.
 
-## Stack
+The purpose of this repo is simple. If the backend gives you a decent SDK, typed DTOs, and readable comments, frontend automation becomes much more realistic. This project was built as a vibe coding project with the generated SDK and local [CLAUDE.md](CLAUDE.md) doing most of the steering, mainly through Codex and Claude Code.
 
-- Next.js App Router
-- React
-- TypeScript
-- `@samchon/bbs-api`
-- React Query
+It is not meant to prove that AI will always design perfect UI alone. It is meant to show that backend documentation quality directly changes how far frontend automation can go.
 
-## Screens
-
-### Home
-
-![Home screen](public/readme/home.png)
-
-### Post Detail
-
-![Post detail screen](public/readme/detail.png)
-
-### Write Post
-
-![Write post screen](public/readme/write-post.png)
-
-## Run It
-
+## 2. Getting Started
 Start the backend first.
+
+This sample backend is not a Docker-first service. It is a local NestJS + Prisma + SQLite project that runs directly on Node.js.
 
 ```bash
 git clone https://github.com/samchon/bbs-backend
@@ -37,6 +25,17 @@ pnpm install
 pnpm build:main
 pnpm start
 ```
+
+> Run this once if you want dummy articles and comments for testing.
+>
+> ```bash
+> git clone https://github.com/samchon/bbs-backend
+> cd bbs-backend
+> pnpm install
+> pnpm build
+> pnpm test --reset true --simultaneous 1
+> pnpm start
+> ```
 
 Then start the frontend in another terminal.
 
@@ -54,12 +53,36 @@ Default addresses:
 
 If the backend host changes, set `NEXT_PUBLIC_BBS_API_HOST` before starting the frontend.
 
-## Useful Commands
+## 3. Stack
+- Next.js App Router
+- React
+- TypeScript
+- React Query
+- Playwright
+- `@samchon/bbs-api`
+
+## 4. Screens
+### Home
+![Home screen](public/readme/home.png)
+
+### Post Detail
+![Post detail screen](public/readme/detail.png)
+
+### Write Post
+![Write post screen](public/readme/write-post.png)
+
+## 5. Test Automation
+This repo uses browser-first testing.
+
+- `pnpm test:e2e`: builds the app in SDK simulation mode and runs Playwright against the frontend only
+- `pnpm ui:review`: builds the app, opens the main screens, checks key controls, and stores fresh screenshots under `.artifacts/ui-review/`
+- GitHub Actions runs typecheck, e2e, and UI review without booting the backend server
+
+Useful commands:
 
 - `pnpm dev`
 - `pnpm typecheck`
 - `pnpm build`
 - `pnpm start`
+- `pnpm test:e2e`
 - `pnpm ui:review`
-
-`pnpm ui:review` builds the app, runs it in Playwright, checks key controls, and saves fresh screenshots under `.artifacts/ui-review/`.

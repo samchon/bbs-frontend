@@ -6,12 +6,15 @@
   "description": "Next.js frontend for the samchon BBS SDK",
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 3000",
+    "build:ui-test": "node scripts/build-for-ui-tests.mjs",
+    "test:e2e": "pnpm build:ui-test && node scripts/run-playwright-tests.mjs",
+    "test:e2e:ui": "playwright test --ui",
     "typecheck": "tsc --noEmit",
     "build": "pnpm typecheck && next build",
     "start": "next start --hostname 127.0.0.1 --port 3000",
     "preview": "pnpm start",
     "mcp:playwright:install": "node scripts/install-playwright-mcp.mjs",
-    "ui:review": "pnpm mcp:playwright:install && pnpm build && node scripts/ui-review.mjs",
+    "ui:review": "pnpm mcp:playwright:install && pnpm build:ui-test && node scripts/ui-review.mjs",
     "ui:trace": "pnpm exec playwright show-trace .artifacts/ui-review/ui-review-trace.zip"
   },
   "keywords": [

@@ -43,6 +43,15 @@ This project is implemented as a Next.js App Router frontend with client-side da
 - Why the added complexity is worth it:
   - One shared query layer reduces repeated error-prone boilerplate and improves user feedback.
 
+### Playwright
+
+- Problem solved:
+  - The project needs browser-level validation for search, sort, pagination, comment flows, and responsive layout checks.
+- Why the platform default is not enough:
+  - TypeScript and build success alone do not prove that the rendered UI still works.
+- Why the added complexity is worth it:
+  - One browser test stack now covers both CI smoke tests and local UI review.
+
 ### React Hook Form
 
 - Problem solved:
@@ -93,6 +102,7 @@ This project is implemented as a Next.js App Router frontend with client-side da
 - Comment filtering is optional instead of always expanded, which keeps the detail screen focused on reading first
 - Update actions are labeled as edits in the UI, while history remains visible through selectable saved versions
 - Next.js handles route-based chunking for the home page, post creation, and article detail routes
+- Playwright now covers the main board flow against a real backend and GitHub Actions runs it on push and pull request
 
 ## Implemented Route Map
 

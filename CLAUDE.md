@@ -1,5 +1,3 @@
-# CLAUDE.md
-
 ## Goal
 This project should produce a frontend that understands the SDK well.
 
@@ -62,6 +60,27 @@ Docs and helper commands should follow the code instead of drifting away from it
 - Update docs when architecture, package choices, user flows, or omissions change.
 - If a useful project command does not exist yet, create it before relying on it.
 
+## Testing
+Testing should prove that the rendered product still works.
+
+For frontend-only work, keep the test program focused on the frontend itself. Do not boot the backend, judge backend health, or let CI drift into server checks.
+
+The SDK already supports simulation through the connection object. When `simulate: true` is set, the SDK returns simulated responses instead of calling the real backend. For frontend tests, treat this as API mocking at the SDK boundary.
+
+```ts
+const connection: IConnection = {
+  host: "http://127.0.0.1:...",
+  simulate: true,
+};
+```
+
+- If the repo does not have a suitable test stack yet, add one.
+- Keep a browser-first test program for the main user flows.
+- Prefer Playwright for end-to-end and UI review work unless the user wants something else.
+- Do not add backend health, startup, or server-state checks to the frontend test program or its GitHub Actions workflow.
+- If integration testing is needed, keep it as a separate test program.
+- Keep local test commands and GitHub Actions aligned when the test setup changes.
+
 ## UI Review
 UI work is not done when the code compiles.
 
@@ -83,4 +102,5 @@ Done means the product works, not just that files were written.
 - Core flows work.
 - The UI is coherent.
 - The docs match the code.
+- The tests match the code.
 - If an SDK feature makes the product worse, simplify it or leave it out.

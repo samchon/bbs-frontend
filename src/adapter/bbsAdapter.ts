@@ -26,6 +26,7 @@ import { normalizeError } from "./errors";
 
 const connection: IConnection = {
   host: appEnv.apiHost,
+  simulate: appEnv.simulate,
 };
 
 const withErrorBoundary = async <T>(runner: () => Promise<T>) => {

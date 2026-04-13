@@ -10,8 +10,11 @@ const normalizeHost = (value?: string) => {
   return trimmed.replace(/\/+$/, "");
 };
 
+const normalizeBoolean = (value?: string) => value?.trim().toLowerCase() === "true";
+
 export const appEnv = {
   apiHost: normalizeHost(
     process.env.NEXT_PUBLIC_BBS_API_HOST ?? process.env.VITE_BBS_API_HOST,
   ),
+  simulate: normalizeBoolean(process.env.NEXT_PUBLIC_BBS_SIMULATE),
 };
