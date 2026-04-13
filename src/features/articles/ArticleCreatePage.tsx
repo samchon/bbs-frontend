@@ -1,18 +1,21 @@
-import { Link, useNavigate } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArticleEditorForm } from "./ArticleEditorForm";
 import { useCreateArticleMutation } from "./hooks";
 import { toAppError } from "../../adapter/errors";
 import { defaultArticleEditorValues } from "../../domain/models";
 
 export function ArticleCreatePage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const createArticleMutation = useCreateArticleMutation();
 
   return (
     <div className="page-stack">
       <section className="panel page-intro">
         <div>
-          <Link to="/" className="back-link">
+          <Link href="/" className="back-link">
             Back to posts
           </Link>
           <h2>Write a post</h2>
@@ -34,7 +37,7 @@ export function ArticleCreatePage() {
           }
           onSubmit={async (values) => {
             const article = await createArticleMutation.mutateAsync(values);
-            navigate(`/articles/${article.id}`);
+            router.push(`/articles/${article.id}`);
           }}
         />
       </section>

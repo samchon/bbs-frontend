@@ -11,5 +11,7 @@ const normalizeHost = (value?: string) => {
 };
 
 export const appEnv = {
-  apiHost: normalizeHost(import.meta.env.VITE_BBS_API_HOST),
+  apiHost: normalizeHost(
+    process.env.NEXT_PUBLIC_BBS_API_HOST ?? process.env.VITE_BBS_API_HOST,
+  ),
 };

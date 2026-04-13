@@ -1,6 +1,6 @@
-import { Outlet } from "react-router-dom";
+import type { ReactNode } from "react";
 
-export function AppShell() {
+export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -11,9 +11,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="app-main">
-        <Outlet />
-      </main>
+      <main className="app-main">{children}</main>
     </div>
   );
 }

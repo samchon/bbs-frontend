@@ -1,3 +1,5 @@
+"use client";
+
 import { useForm } from "react-hook-form";
 import { AttachmentFieldArray } from "../../shared/components/AttachmentFieldArray";
 import { Notice } from "../../shared/components/Notice";

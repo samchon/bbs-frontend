@@ -1,3 +1,5 @@
+"use client";
+
 import DOMPurify from "dompurify";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";

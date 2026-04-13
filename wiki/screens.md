@@ -30,7 +30,7 @@
 - Lives underneath the post body
 - Lists comments through `comments.index`
 - Supports sort, pagination, and an optional filter panel
-- Opens a focused comment detail section through `comments.at`
+- Opens a focused comment detail section from the already loaded list data
 - Shows the latest saved version by default and lets the reader open older saved versions
 - Keeps comment update and delete flows behind foldouts so the read flow stays first
 - Provides create, update, and delete flows

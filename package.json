@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Production-ready frontend for the samchon BBS SDK",
+  "description": "Next.js frontend for the samchon BBS SDK",
   "scripts": {
-    "dev": "vite",
+    "dev": "next dev --hostname 127.0.0.1 --port 3000",
     "typecheck": "tsc --noEmit",
-    "build": "pnpm typecheck && vite build",
-    "preview": "vite preview",
+    "build": "pnpm typecheck && next build",
+    "start": "next start --hostname 127.0.0.1 --port 3000",
+    "preview": "pnpm start",
     "mcp:playwright:install": "node scripts/install-playwright-mcp.mjs",
     "ui:review": "pnpm mcp:playwright:install && pnpm build && node scripts/ui-review.mjs",
     "ui:trace": "pnpm exec playwright show-trace .artifacts/ui-review/ui-review-trace.zip"
@@ -16,7 +17,7 @@
   "keywords": [
     "bbs",
     "react",
-    "vite",
+    "nextjs",
     "typescript"
   ],
   "author": "",
@@ -26,11 +27,11 @@
     "@samchon/bbs-api": "^4.0.0",
     "@tanstack/react-query": "^5.99.0",
     "dompurify": "^3.3.3",
+    "next": "^16.2.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-hook-form": "^7.72.1",
     "react-markdown": "^10.1.0",
-    "react-router-dom": "^7.14.0",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
@@ -38,8 +39,6 @@
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
-    "typescript": "^5.9.3",
-    "vite": "^8.0.8"
+    "typescript": "^5.9.3"
   }
 }

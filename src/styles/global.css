@@ -475,16 +475,16 @@ small {
 }
 
 .board-table-wrap {
-  overflow-x: auto;
+  overflow-x: hidden;
   border: 1px solid var(--line);
   border-radius: 0.35rem;
 }
 
 .board-table {
   width: 100%;
-  min-width: 720px;
   border-collapse: collapse;
   background: #fff;
+  table-layout: fixed;
 }
 
 .board-table th,
@@ -493,6 +493,7 @@ small {
   border-bottom: 1px solid var(--line);
   vertical-align: top;
   text-align: left;
+  word-break: break-word;
 }
 
 .board-table thead th {
@@ -511,12 +512,20 @@ small {
 }
 
 .board-table__title {
-  min-width: 18rem;
+  min-width: 0;
 }
 
 .board-table__title-block {
   display: grid;
   gap: 0.25rem;
+}
+
+.board-table__mobile-meta {
+  display: none;
+  gap: 0.15rem;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
 }
 
 .board-table__link {
@@ -532,6 +541,10 @@ small {
 .board-table__excerpt {
   margin: 0.35rem 0 0;
   color: var(--ink-soft);
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .board-table--compact th,
@@ -549,7 +562,7 @@ small {
 }
 
 .board-table--preview .board-table__title {
-  min-width: 26rem;
+  min-width: 0;
 }
 
 .board-table--preview .board-table__title-block {
@@ -748,6 +761,25 @@ small {
   }
 }
 
+@media (max-width: 820px) {
+  .board-table thead th:nth-child(3),
+  .board-table thead th:nth-child(4),
+  .board-table thead th:nth-child(5),
+  .board-table tbody td:nth-child(3),
+  .board-table tbody td:nth-child(4),
+  .board-table tbody td:nth-child(5) {
+    display: none;
+  }
+
+  .board-table__number {
+    width: 3.25rem;
+  }
+
+  .board-table__mobile-meta {
+    display: grid;
+  }
+}
+
 @media (max-width: 640px) {
   .app-shell {
     width: min(100% - 1rem, 1120px);
@@ -795,5 +827,10 @@ small {
   .toolbar-field,
   .toolbar-search {
     width: 100%;
+  }
+
+  .board-table th,
+  .board-table td {
+    padding: 0.75rem 0.6rem;
   }
 }

@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { useArticlesQuery } from "./hooks";
 import { toAppError } from "../../adapter/errors";
 import {
@@ -264,7 +266,7 @@ export function ArticleExplorerPage() {
 
         <div className="board-actions">
           <p className="muted">Want to add something new to the board?</p>
-          <Link to="/articles/new" className="button">
+          <Link href="/articles/new" className="button">
             Write a post
           </Link>
         </div>
@@ -432,9 +434,14 @@ function ArticleRow({
       <td className="board-table__number">{number}</td>
       <td className="board-table__title">
         <div className="board-table__title-block">
-          <Link to={`/articles/${item.id}`} className="board-table__link">
+          <Link href={`/articles/${item.id}`} className="board-table__link">
             {item.title}
           </Link>
+          <div className="board-table__mobile-meta">
+            <span>{item.writer}</span>
+            <span>Created {formatDateTime(item.createdAt)}</span>
+            <span>Updated {formatDateTime(item.updatedAt)}</span>
+          </div>
           {item.kind === "abridge" ? (
             <>
               <p className="board-table__excerpt">{excerpt(item.body, 180)}</p>

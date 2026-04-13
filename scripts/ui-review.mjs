@@ -1,10 +1,10 @@
-import { createServer } from "node:http";
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
-import { extname, join, normalize, resolve } from "node:path";
+import { spawn } from "node:child_process";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
 import process from "node:process";
+import { createServer } from "node:net";
 import { chromium } from "@playwright/test";
 
-const distDir = resolve("dist");
 const artifactsDir = resolve(".artifacts/ui-review");
 const tracePath = join(artifactsDir, "ui-review-trace.zip");
 const summaryPath = join(artifactsDir, "summary.json");
@@ -14,7 +14,7 @@ async function main() {
   await rm(artifactsDir, { force: true, recursive: true });
   await mkdir(artifactsDir, { recursive: true });
 
-  const serverContext = shouldManageServer ? await startStaticServer() : null;
+  const serverContext = shouldManageServer ? await startAppServer() : null;
   const baseURL = process.env.UI_REVIEW_BASE_URL ?? serverContext?.baseURL;
 
   try {
@@ -33,11 +33,14 @@ async function main() {
 
     const page = await context.newPage();
     const captures = [];
+    const checks = {};
 
     await page.goto(baseURL, { waitUntil: "domcontentloaded" });
     await page.locator("h2", { hasText: "Posts" }).waitFor({ timeout: 10000 });
     await page.waitForLoadState("networkidle").catch(() => {});
     captures.push(await capture(page, "01-home-preview.png"));
+
+    checks.list = await verifyListControls(page);
 
     const compactButton = page.getByRole("button", { name: /compact/i });
     if (await compactButton.count()) {
@@ -71,12 +74,16 @@ async function main() {
       await firstPostLink.click();
       await page.waitForURL(/\/articles\//, { timeout: 10000 });
       await page.waitForLoadState("networkidle").catch(() => {});
-      const loadingCommentNotice = page.getByText("The selected comment is loading.");
-      if (await loadingCommentNotice.count()) {
-        await loadingCommentNotice.waitFor({ state: "detached", timeout: 10000 }).catch(() => {});
+      const loadingCommentsNotice = page.getByText("The comment list is loading.");
+      if (await loadingCommentsNotice.count()) {
+        await loadingCommentsNotice
+          .waitFor({ state: "detached", timeout: 10000 })
+          .catch(() => {});
       }
       captures.push(await capture(page, "04-post-detail.png"));
     }
+
+    checks.responsive = await verifyResponsiveLayouts(browser, baseURL);
 
     await page.goto(`${baseURL}/articles/new`, { waitUntil: "domcontentloaded" });
     await page.locator("h2", { hasText: "Write a post" }).waitFor({ timeout: 10000 });
@@ -92,6 +99,7 @@ async function main() {
           generatedAt: new Date().toISOString(),
           baseURL,
           captures,
+          checks,
           tracePath,
         },
         null,
@@ -105,28 +113,55 @@ async function main() {
     console.log(`- ${tracePath}`);
   } finally {
     if (serverContext) {
-      await stopStaticServer(serverContext.server);
+      await stopAppServer(serverContext.process);
     }
   }
 }
 
-async function startStaticServer() {
-  const server = createServer(async (request, response) => {
-    try {
-      const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
-      const filePath = await resolveRequestPath(requestUrl.pathname);
-      const content = await readFile(filePath);
-
-      response.writeHead(200, {
-        "Content-Type": contentType(filePath),
-        "Cache-Control": "no-store",
-      });
-      response.end(content);
-    } catch (error) {
-      response.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
-      response.end(String(error));
-    }
+async function startAppServer() {
+  const port = await findOpenPort();
+  const command =
+    process.platform === "win32"
+      ? "cmd.exe"
+      : "pnpm";
+  const args =
+    process.platform === "win32"
+      ? ["/d", "/s", "/c", `pnpm exec next start --hostname 127.0.0.1 --port ${port}`]
+      : ["exec", "next", "start", "--hostname", "127.0.0.1", "--port", String(port)];
+  const child = spawn(command, args, {
+    cwd: resolve("."),
+    env: { ...process.env },
+    stdio: ["ignore", "pipe", "pipe"],
   });
+
+  child.stdout.on("data", (chunk) => process.stdout.write(chunk));
+  child.stderr.on("data", (chunk) => process.stderr.write(chunk));
+
+  return {
+    process: child,
+    baseURL: `http://127.0.0.1:${port}`,
+  };
+}
+
+async function stopAppServer(child) {
+  if (!child.pid || child.exitCode !== null) {
+    return;
+  }
+
+  if (process.platform === "win32") {
+    const taskkill = spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], {
+      stdio: "ignore",
+    });
+    await onceExit(taskkill);
+    return;
+  }
+
+  child.kill("SIGTERM");
+  await onceExit(child);
+}
+
+async function findOpenPort() {
+  const server = createServer();
 
   await new Promise((resolve, reject) => {
     server.once("error", reject);
@@ -135,16 +170,11 @@ async function startStaticServer() {
 
   const address = server.address();
   if (!address || typeof address === "string") {
-    throw new Error("Unable to determine the local review server address.");
+    server.close();
+    throw new Error("Unable to determine a local port for ui review.");
   }
 
-  return {
-    server,
-    baseURL: `http://127.0.0.1:${address.port}`,
-  };
-}
-
-async function stopStaticServer(server) {
+  const { port } = address;
   await new Promise((resolve, reject) => {
     server.close((error) => {
       if (error) {
@@ -154,46 +184,15 @@ async function stopStaticServer(server) {
       resolve(undefined);
     });
   });
+
+  return port;
 }
 
-async function resolveRequestPath(pathname) {
-  if (pathname === "/") {
-    return join(distDir, "index.html");
-  }
-
-  const candidate = join(distDir, normalize(pathname).replace(/^\\|^\//, ""));
-  try {
-    const fileStat = await stat(candidate);
-    if (fileStat.isFile()) {
-      return candidate;
-    }
-  } catch {
-    // Fall through to SPA index.
-  }
-
-  return join(distDir, "index.html");
-}
-
-function contentType(filePath) {
-  switch (extname(filePath)) {
-    case ".html":
-      return "text/html; charset=utf-8";
-    case ".js":
-      return "text/javascript; charset=utf-8";
-    case ".css":
-      return "text/css; charset=utf-8";
-    case ".json":
-      return "application/json; charset=utf-8";
-    case ".svg":
-      return "image/svg+xml";
-    case ".png":
-      return "image/png";
-    case ".jpg":
-    case ".jpeg":
-      return "image/jpeg";
-    default:
-      return "application/octet-stream";
-  }
+async function onceExit(child) {
+  await new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("exit", () => resolve(undefined));
+  });
 }
 
 async function waitForServer(url, timeoutMs = 120_000) {
@@ -223,6 +222,137 @@ async function capture(page, fileName) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function verifyListControls(page) {
+  const initialTitles = await readTitles(page);
+  const initialFirstWriter = await page.locator("tbody tr td:nth-child(3)").first().textContent();
+
+  await page.getByLabel("Page size").selectOption("5");
+  await page.waitForFunction(
+    () => document.querySelectorAll("tbody tr").length === 5,
+    undefined,
+    { timeout: 10000 },
+  );
+
+  const rowCountAfterPageSize = await page.locator("tbody tr").count();
+  if (rowCountAfterPageSize !== 5) {
+    throw new Error(
+      `Expected 5 visible rows after page size change, received ${rowCountAfterPageSize}.`,
+    );
+  }
+
+  await page.getByLabel("Sort").selectOption("title_asc");
+  await page.waitForFunction(
+    (previousTitles) => {
+      const currentTitles = Array.from(
+        document.querySelectorAll(".board-table__link"),
+        (element) => element.textContent?.trim() ?? "",
+      );
+      return currentTitles.join("|") !== previousTitles.join("|");
+    },
+    initialTitles,
+    { timeout: 10000 },
+  );
+
+  const titlesAfterSort = await readTitles(page);
+
+  await page.getByRole("button", { name: /search/i }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.waitFor({ timeout: 5000 });
+  await dialog
+    .getByRole("textbox", { name: "Writer" })
+    .fill(initialFirstWriter?.trim() ?? "");
+  await dialog.getByRole("button", { name: /apply search/i }).click();
+  await page.waitForLoadState("networkidle").catch(() => {});
+
+  const filterSummary = (await page.locator(".filter-summary").textContent())?.trim() ?? "";
+  const rowsAfterSearch = await page.locator("tbody tr").count();
+
+  if (!filterSummary) {
+    throw new Error("Expected a visible search summary after applying a search.");
+  }
+  if (rowsAfterSearch === 0) {
+    throw new Error("Expected at least one row after searching by a visible writer.");
+  }
+
+  await page.getByRole("button", { name: /clear search/i }).click();
+  await page.waitForFunction(
+    () => !document.querySelector(".filter-summary"),
+    undefined,
+    { timeout: 10000 },
+  );
+  await page.getByLabel("Sort").selectOption("updated_desc");
+  await page.getByLabel("Page size").selectOption("10");
+  await page.waitForFunction(
+    () => document.querySelectorAll("tbody tr").length === 10,
+    undefined,
+    { timeout: 10000 },
+  );
+
+  return {
+    initialTitles,
+    rowCountAfterPageSize,
+    titlesAfterSort,
+    rowsAfterSearch,
+    filterSummary,
+  };
+}
+
+async function verifyResponsiveLayouts(browser, baseURL) {
+  const cases = [
+    { name: "mobile-home", viewport: { width: 390, height: 844 }, path: "/" },
+    { name: "tablet-home", viewport: { width: 768, height: 1024 }, path: "/" },
+    {
+      name: "mobile-detail",
+      viewport: { width: 390, height: 844 },
+      path: "/articles/cefdf5f1-64a9-4046-b726-26e27beab738",
+    },
+    {
+      name: "tablet-detail",
+      viewport: { width: 768, height: 1024 },
+      path: "/articles/cefdf5f1-64a9-4046-b726-26e27beab738",
+    },
+  ];
+
+  const results = [];
+
+  for (const testCase of cases) {
+    const page = await browser.newPage({ viewport: testCase.viewport });
+
+    try {
+      await page.goto(`${baseURL}${testCase.path}`, { waitUntil: "domcontentloaded" });
+      await page.waitForLoadState("networkidle").catch(() => {});
+
+      const metrics = await page.evaluate(() => ({
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      }));
+      const hasHorizontalOverflow = metrics.scrollWidth > metrics.clientWidth;
+
+      if (hasHorizontalOverflow) {
+        throw new Error(
+          `Responsive overflow detected for ${testCase.name}: scrollWidth=${metrics.scrollWidth}, clientWidth=${metrics.clientWidth}.`,
+        );
+      }
+
+      results.push({
+        ...testCase,
+        ...metrics,
+        hasHorizontalOverflow,
+      });
+    } finally {
+      await page.close();
+    }
+  }
+
+  return results;
+}
+
+async function readTitles(page) {
+  return page.locator(".board-table__link").evaluateAll((elements) =>
+    elements.map((element) => element.textContent?.trim() ?? ""),
+  );
 }
 
 main().catch((error) => {

@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { toAppError } from "../../adapter/errors";
 import { AttachmentList } from "../../shared/components/AttachmentList";

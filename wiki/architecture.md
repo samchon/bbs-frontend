@@ -2,37 +2,37 @@
 
 ## Frontend Strategy
 
-This project is implemented as a client-rendered TypeScript SPA.
+This project is implemented as a Next.js App Router frontend with client-side data flows.
 
 - Problem solved:
   - The SDK exposes external HTTP endpoints for list, detail, create, update, delete, search, pagination, and history flows.
-  - The app needs quick refetching and low-friction navigation more than server-rendered SEO.
+  - The app needs quick refetching and low-friction navigation more than SEO-heavy page composition.
 - Why the platform default is not enough:
   - Plain DOM scripting would make cross-screen state, forms, cache invalidation, and history selection hard to maintain.
 - Why the added complexity is worth it:
-  - A component model plus route-based UI lets us keep the adapter boundary narrow while still shipping the whole board workflow in one coherent app.
+  - A Next.js shell plus route-based UI keeps the adapter boundary narrow while still shipping the whole board workflow in one coherent app.
 
 ## Chosen Stack
 
-### React + Vite + TypeScript
+### Next.js + React + TypeScript
 
 - Problem solved:
+  - Next.js provides the route tree, app shell, build pipeline, and production server in one place.
   - React gives a practical component model for board list, post detail, comment detail, and editor screens.
-  - Vite keeps the toolchain small and fast for a pure frontend client.
   - TypeScript helps keep normalized domain models and SDK adapters aligned.
 - Why the platform default is not enough:
   - There is no existing app shell, router, or build pipeline in the repository.
 - Why the added complexity is worth it:
-  - This is the smallest modern stack that still supports a maintainable production frontend.
+  - It gives a durable app structure without forcing the project into a larger backend-for-frontend layer.
 
-### React Router
+### Next App Router
 
 - Problem solved:
   - Home, post creation, and post detail are distinct navigable screens.
 - Why the platform default is not enough:
   - Conditional rendering alone makes deep-linking, browser navigation, and route-based loading awkward.
 - Why the added complexity is worth it:
-  - It gives stable URLs for the core board flows without introducing a full meta-framework.
+  - It gives stable URLs for the core board flows while keeping the route structure inside the same frontend repo.
 
 ### TanStack Query
 
@@ -92,13 +92,13 @@ This project is implemented as a client-rendered TypeScript SPA.
 - Post detail now follows a single-column reading flow first, with saved versions and destructive actions tucked into foldouts
 - Comment filtering is optional instead of always expanded, which keeps the detail screen focused on reading first
 - Update actions are labeled as edits in the UI, while history remains visible through selectable saved versions
-- Vite is configured to split React, data, markdown, and SDK code into separate chunks so the production bundle does not ship as one oversized file
+- Next.js handles route-based chunking for the home page, post creation, and article detail routes
 
 ## Implemented Route Map
 
 - `/`: post list with search, sort, pagination, and a bottom write action
 - `/articles/new`: post creation
-- `/articles/:articleId`: post detail, selectable history, comments, and mutations
+- `/articles/[articleId]`: post detail, selectable history, comments, and mutations
 
 ## Current Notes
 

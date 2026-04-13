@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useState, useTransition } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toAppError } from "../../adapter/errors";
 import { AttachmentList } from "../../shared/components/AttachmentList";
 import { ErrorNotice } from "../../shared/components/ErrorNotice";
@@ -31,9 +34,8 @@ const commentSortOptions = [
   { value: "writer_desc", label: "Writer Z-A" },
 ] as const;
 
-export function ArticleDetailPage() {
-  const { articleId } = useParams();
-  const navigate = useNavigate();
+export function ArticleDetailPage({ articleId }: { articleId: string }) {
+  const router = useRouter();
   const [deletePassword, setDeletePassword] = useState("");
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string | null>(null);
   const [commentBrowseState, setCommentBrowseState] = useState(() =>
@@ -108,7 +110,7 @@ export function ArticleDetailPage() {
     <div className="page-stack">
       <section className="panel page-intro">
         <div>
-          <Link to="/" className="back-link">
+          <Link href="/" className="back-link">
             Back to posts
           </Link>
           <h2>{articleQuery.data?.latestSnapshot.title ?? "Loading post..."}</h2>
@@ -393,7 +395,11 @@ export function ArticleDetailPage() {
 
             {commentsQuery.data && commentsQuery.data.items.length === 0 ? (
               <Notice title="No comments yet" tone="warning">
-                <p>No comments matched the current filter.</p>
+                <p>
+                  {activeCommentFilters.length
+                    ? "No comments matched the current filter."
+                    : "Be the first to leave a comment on this post."}
+                </p>
               </Notice>
             ) : null}
 
@@ -531,7 +537,7 @@ export function ArticleDetailPage() {
                   disabled={deleteArticleMutation.isPending || !deletePassword}
                   onClick={async () => {
                     await deleteArticleMutation.mutateAsync(deletePassword);
-                    navigate("/");
+                    router.push("/");
                   }}
                 >
                   {deleteArticleMutation.isPending ? "Deleting..." : "Delete post"}
