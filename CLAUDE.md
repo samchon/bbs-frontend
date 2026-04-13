@@ -1,46 +1,86 @@
 # CLAUDE.md
 
 ## Goal
-Build a production-ready frontend application that fully understands and exploits the installed SDK.
+This project should produce a frontend that understands the SDK well.
 
-Design the app so it does not become tightly coupled to one specific SDK. If the SDK changes later, most of the replacement cost should stay in the adapter layer rather than spilling across the UI.
+Do not let raw SDK shapes take over the UI.
 
-## Starting Principles
-Before doing anything else, read the SDK's real exports and `d.ts` files end to end, then map its APIs, DTOs, and constraints. For this task, you must specifically read `node_modules/@samchon/bbs-api/lib/**/*.d.ts` first. Treat code and type declarations as the source of truth over README-style prose.
+- Keep SDK-specific code in an adapter layer.
+- Let the UI depend on normalized domain models and hooks.
 
-Do not hardcode the server host directly into the app. Inject it through environment variables. Use `http://localhost:37000` as the default host unless the task explicitly provides another one.
+## Stack
+Use a fixed base unless the user explicitly wants something else.
 
-## Design Principles
-Keep SDK-specific code inside a dedicated adapter layer. The UI and screen layer should work with normalized domain models and hooks instead of talking to SDK types everywhere.
+- Use `TypeScript + Next.js + shadcn/ui` unless the user approves another stack.
+- Use environment variables for the API host.
+- Default API host: `http://127.0.0.1:37000`.
+- Add libraries only when they solve a real problem.
 
-Do not leak SDK types across the entire app. Keep the replacement boundary narrow and deliberate. For important technical choices such as framework, routing, state management, data fetching, styling, and form handling, make the reasoning explicit:
+## Start
+Before designing screens, make the SDK surface clear.
 
-- what problem it solves
-- why the platform default is not enough
-- why the added complexity is worth it
+- Scaffold the app.
+- Install the SDK.
+- Read `node_modules/@samchon/bbs-api/lib/**/*.d.ts` carefully.
+- Read the comments too.
+- Treat code, types, and comments as the source of truth.
+- Map the main APIs, DTOs, and constraints before designing the UI.
 
-## Stack Choice
-Do not treat any framework or library as mandatory. Choose based on the SDK shape, rendering strategy, app complexity, and maintenance cost.
+## Design
+The code structure should keep replacement cost low if the SDK changes later.
 
-If you need a default starting point, begin with `TypeScript + Next.js + shadcn/ui`. This is still a default, not a hard rule.
+- Keep SDK code in a dedicated adapter layer.
+- Do not spread SDK types across screens and components.
+- Explain any non-default choice for routing, state, fetching, styling, forms, testing, or browser automation.
 
-You may install packages freely with `pnpm`, but do not add them out of habit. Every addition should have a clear problem statement and a clear reason.
+## Product
+Read the SDK broadly.
 
-## Working Method
-Use the `wiki/` folder as living documentation throughout the project. It is not an after-the-fact report. It is a working tool that should be continuously added to, revised, deleted, and edited while implementation is in progress.
+Do not turn every endpoint into a feature. Prefer a clear product over full endpoint coverage.
 
-Keep `wiki/` updated with API mappings, screen structure, data models, architecture decisions, open questions, and remaining work. When package choices, structure, or user flows change, update the wiki in the same stretch of work. Do not leave stale assumptions or outdated documents behind.
+- Do not force every API into the UI.
+- Leave out APIs that are redundant, diagnostic, cluttering, or harmful to the main flow.
+- Note intentional omissions in `wiki/`.
+- Do not invent features the SDK does not support.
+- Handle loading, empty, error, retry, and invalidation states.
+- Finish the main user flows before adding secondary controls.
 
-## Implementation Principles
-Use every meaningful read and write capability the SDK exposes in real user flows. Do not leave unused endpoints, decorative integrations, or dead screens in the product.
+## Visual Style
+The default direction is a simple prototype-first UI.
 
-If the SDK supports them, turn list, detail, create, update, delete, search, sort, pagination, attachments, history, diagnostics, and status views into real product features.
+It is only a default. If the user gives a different direction, or if the existing product style is already clear, follow that instead.
 
-Do not invent capabilities that are not grounded in the SDK surface. Authentication, authorization, uploads, nested resources, extra fields, and custom workflows should only appear when the SDK actually supports them.
+- The UI must work well on mobile, tablet, and desktop.
+- Start from real UI parts such as lists, tables, forms, detail views, dialogs, and pagination.
+- Keep the layout readable and content-first.
+- Avoid decorative choices that hurt clarity or usability.
 
-If the app needs to render HTML or remote content, handle it safely. Put destructive or failure-inducing operations behind dedicated diagnostic surfaces and explicit confirmation. Do not stop at the happy path; finish loading, empty, error, retry, and cache invalidation behavior as well.
+## Workflow
+Docs and helper commands should follow the code instead of drifting away from it.
 
-## Done Criteria
-The app should be explorable immediately after it starts, and the core user flows should actually work.
+- Keep `wiki/` aligned with the code.
+- Update docs when architecture, package choices, user flows, or omissions change.
+- If a useful project command does not exist yet, create it before relying on it.
 
-In the final explanation, focus more on why choices were made than on listing tools. The `wiki/` folder should stay aligned with the current codebase so that a newly joined teammate can understand the structure and reasoning without guessing.
+## UI Review
+UI work is not done when the code compiles.
+
+It is done after the flow has been used and checked.
+
+- Run the flow yourself.
+- Prefer direct browser interaction.
+- Install browser automation before falling back.
+- Check the UI at mobile, tablet, and desktop sizes.
+- Verify that controls cause observable changes.
+- Verify that search, sort, pagination, page size, toggles, dialogs, and forms actually work when present.
+- Do one final pass for layout and copy before calling the work done.
+- Fall back to screenshots or raw API checks only when browser automation is not available.
+
+## Done
+Done means the product works, not just that files were written.
+
+- The app starts.
+- Core flows work.
+- The UI is coherent.
+- The docs match the code.
+- If an SDK feature makes the product worse, simplify it or leave it out.

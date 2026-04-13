@@ -1,2 +1,4 @@
 node_modules/
-wiki/
+dist/
+.env.local
+.artifacts/
